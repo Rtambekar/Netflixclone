@@ -1,15 +1,22 @@
-// SearchScreen.js
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TextInput, Image, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 
-const SearchScreen = () => {
+const SearchScreen = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
 
   const fetchMovies = (query) => {
     if (!query) {
-      setMovies([]); // Clear results when query is empty
+      setMovies([]);
       return;
     }
 
@@ -17,9 +24,7 @@ const SearchScreen = () => {
 
     fetch(`https://api.tvmaze.com/search/shows?q=${query}`)
       .then((response) => response.json())
-      .then((data) => {
-        setMovies(data || []); // Safely handle null or undefined response
-      })
+      .then((data) => setMovies(data || []))
       .catch((error) => console.error('Error fetching data:', error))
       .finally(() => setLoading(false));
   };
@@ -30,17 +35,19 @@ const SearchScreen = () => {
   };
 
   const renderItem = ({ item }) => {
-    if (!item || !item.show) return null; // Safeguard against incomplete data
+    if (!item || !item.show) return null;
 
     const { image, name, summary } = item.show;
 
-    // Safely sanitize summary
     const sanitizedSummary = summary
       ? summary.replace(/<\/?[^>]+(>|$)/g, '').slice(0, 100) + '...'
       : 'No description available';
 
     return (
-      <View style={styles.card}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('DetailsScreen', { movie: item.show })}
+      >
         {image?.medium ? (
           <Image source={{ uri: image.medium }} style={styles.image} />
         ) : (
@@ -48,7 +55,7 @@ const SearchScreen = () => {
         )}
         <Text style={styles.title}>{name}</Text>
         <Text style={styles.summary}>{sanitizedSummary}</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -82,17 +89,19 @@ const SearchScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: '#121212',
+    paddingTop: 10,
   },
   searchBar: {
     height: 40,
-    margin: 10,
-    borderColor: 'gray',
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderColor: '#424242',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 8,
     paddingLeft: 10,
     color: 'white',
-    backgroundColor: 'gray',
+    backgroundColor: '#1E1E1E',
   },
   loadingText: {
     color: 'white',
@@ -105,19 +114,24 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   card: {
-    backgroundColor: 'gray',
-    margin: 10,
+    backgroundColor: '#1E1E1E',
+    marginHorizontal: 16,
+    marginVertical: 8,
     borderRadius: 8,
     padding: 10,
-    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   image: {
-    width: 150,
+    width: '100%',
     height: 200,
-    borderRadius: 5,
+    borderRadius: 8,
   },
   placeholderImage: {
-    backgroundColor: 'darkgray',
+    backgroundColor: '#424242',
   },
   title: {
     color: 'white',
@@ -126,8 +140,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   summary: {
-    color: 'white',
-    fontSize: 12,
+    color: 'gray',
+    fontSize: 14,
     marginTop: 5,
     textAlign: 'center',
   },
